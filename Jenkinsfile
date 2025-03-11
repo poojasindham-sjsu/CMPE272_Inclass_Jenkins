@@ -15,7 +15,7 @@ pipeline {
                         sh '''
                         echo "Deploying HTML to AWS..."
 
-                        scp -o StrictHostKeyChecking=no index.html ubuntu@YOUR_EC2_PUBLIC_IP:/var/www/html/
+                        scp -o StrictHostKeyChecking=no index.html ubuntu@http://3.145.75.19:/var/www/html/
 
                         echo "Deployment Completed!"
                         '''
