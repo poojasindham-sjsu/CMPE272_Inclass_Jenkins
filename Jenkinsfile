@@ -1,30 +1,36 @@
 pipeline {
     agent any
+
     stages {
-        stage('No-op') {
+        stage('Checkout Code') {
             steps {
-                sh 'ls'
+                git branch: 'main', url: 'https://github.com/poojasindham-sjsu/CMPE272_Inclass_Jenkins.git'
+            }
+        }
+
+        stage('Deploy to AWS') {
+            steps {
+                script {
+                    sshagent(['aws-ssh-key']) {
+                        sh '''
+                        echo "Deploying HTML to AWS..."
+
+                        scp -o StrictHostKeyChecking=no index.html ubuntu@YOUR_EC2_PUBLIC_IP:/var/www/html/
+
+                        echo "Deployment Completed!"
+                        '''
+                    }
+                }
             }
         }
     }
+
     post {
-        always {
-            echo 'One way or another, I have finished'
-            deleteDir() /* clean up our workspace */
-        }
         success {
-            mail to: 'pooja.r.sindham@gmail.com',
-             subject: "Successsfull: ${currentBuild.fullDisplayName}",
-             body: "Ran without errors  ${env.BUILD_URL}"
-        }
-        unstable {
-            echo 'I am unstable :/'
+            echo "Deployment successful!"
         }
         failure {
-            echo 'I failed :('
-        }
-        changed {
-            echo 'Things were different before...'
+            echo "Deployment failed!"
         }
     }
 }
