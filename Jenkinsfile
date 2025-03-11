@@ -2,6 +2,11 @@ pipeline {
     agent any
 
     stages {
+        stage('Set Permissions') {
+            steps {
+                sh 'chmod +x src/flakey-deploy.sh src/health-check.sh'
+            }
+        }
         stage('Deploy') {
             steps {
                 retry(3) {
