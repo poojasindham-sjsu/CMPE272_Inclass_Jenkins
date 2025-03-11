@@ -27,7 +27,9 @@ pipeline {
 
     post {
         success {
-            echo "Deployment successful!"
+            mail to: 'pooja.r.sindham@gmail.com',
+              subject: "Successsfull: ${currentBuild.fullDisplayName}",
+              body: "Deployment Successfull"
         }
         failure {
             echo "Deployment failed!"
