@@ -1,10 +1,41 @@
 pipeline {
-    agent { docker { image 'maven:3.9.9-eclipse-temurin-21-alpine' } }
+    agent any
+
     stages {
-        stage('build') {
+        stage('Deploy') {
             steps {
-                sh 'mvn --version'
+                retry(3) {
+                    sh './src/flakey-deploy.sh'
+                }
+
+                timeout(time: 3, unit: 'MINUTES') {
+                    sh './src/health-check.sh'
+                }
             }
+        }
+
+        stage('Test') {
+            steps {
+                sh 'echo "Fail!"; exit 1' // This will fail intentionally
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'This will always run, no matter what'
+        }
+        success {
+            echo 'Success! This runs only if the pipeline succeeds'
+        }
+        failure {
+            echo 'Failure! This runs only if the pipeline fails'
+        }
+        unstable {
+            echo 'Unstable! This runs only if the build is unstable (e.g., some tests fail but not the entire pipeline)'
+        }
+        changed {
+            echo 'Changed! This runs if the pipeline’s status changed from the last run'
         }
     }
 }
