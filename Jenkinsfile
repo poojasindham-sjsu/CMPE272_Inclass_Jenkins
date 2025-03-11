@@ -8,7 +8,9 @@ agent {
                 echo "Setting up virtual environment..."
                 sh '''
                 python -m venv venv
-                bash -c "source venv/bin/activate && pip install --upgrade pip && pip install -r requirements.txt"
+                . venv/bin/activate  # Use dot instead of source
+                pip install --upgrade pip
+                pip install -r requirements.txt
                 '''
             }
         }
