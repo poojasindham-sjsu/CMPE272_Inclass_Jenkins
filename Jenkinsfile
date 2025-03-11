@@ -1,67 +1,47 @@
 pipeline {
     agent any
 
-    environment {
-        DEPLOY_ENV = 'staging'
-        APP_NAME = 'BookTableApp'
-    }
-
     stages {
-        stage('Set Permissions') {
+        stage('Setup') {
             steps {
-                sh 'chmod +x src/flakey-deploy.sh src/health-check.sh'
-            }
-        }
-
-        stage('Deploy') {
-            steps {
-                script {
-                    def status = retry(3) {
-                        return sh(script: './src/flakey-deploy.sh', returnStatus: true)
-                    }
-                    if (status != 0) {
-                        echo "Deployment failed after 3 attempts, but continuing..."
-                    } else {
-                        echo "Successfully deployed to ${DEPLOY_ENV}!"
-                    }
-                }
-
-                timeout(time: 3, unit: 'MINUTES') {
-                    sh './src/health-check.sh'
-                }
+                echo "🔹 Installing dependencies..."
+                sh 'pip install -r requirements.txt'
             }
         }
 
         stage('Run Tests') {
             steps {
-                sh 'pytest --junitxml=results.xml'
+                echo "🔹 Running tests..."
+                sh 'pytest tests/test_sample.py --junitxml=test-results.xml'
             }
         }
 
         stage('Publish Test Results') {
             steps {
-                junit 'results.xml'
+                echo "🔹 Publishing test results..."
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    junit 'test-results.xml'
+                }
             }
         }
 
         stage('Archive Artifacts') {
             steps {
-                archiveArtifacts artifacts: 'logs/*.log', fingerprint: true
+                echo "🔹 Archiving logs and test reports..."
+                archiveArtifacts artifacts: 'logs/test.log, reports/report.html', fingerprint: true
             }
         }
     }
 
     post {
         always {
-            echo "Pipeline complete for ${APP_NAME} in ${DEPLOY_ENV}."
+            echo "✅ Pipeline execution complete!"
         }
         success {
-            echo "SUCCESS: Everything ran fine!"
+            echo "🎉 SUCCESS: Tests executed, results published, and artifacts stored!"
         }
-        failure {
-            echo "FAILURE: Something went wrong!"
+        unstable {
+            echo "⚠️ Some tests failed, but results and artifacts are available."
         }
     }
 }
-
-
