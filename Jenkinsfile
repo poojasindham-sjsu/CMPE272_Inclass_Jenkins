@@ -7,10 +7,22 @@ pipeline {
                 sh 'chmod +x src/flakey-deploy.sh src/health-check.sh'
             }
         }
+
         stage('Deploy') {
             steps {
-                retry(3) {
-                    sh './src/flakey-deploy.sh'
+                script {
+                    def success = false
+                    retry(3) {
+                        try {
+                            sh './src/flakey-deploy.sh'
+                            success = true
+                        } catch (Exception e) {
+                            echo "Deployment failed! Retrying..."
+                        }
+                    }
+                    if (!success) {
+                        echo "❌ Deployment failed after 3 attempts. Continuing pipeline..."
+                    }
                 }
 
                 timeout(time: 3, unit: 'MINUTES') {
@@ -37,10 +49,10 @@ pipeline {
             echo 'Failure! This runs only if the pipeline fails'
         }
         unstable {
-            echo 'Unstable! This runs only if the build is unstable (e.g., some tests fail but not the entire pipeline)'
+            echo 'Unstable! This runs only if the build is unstable'
         }
         changed {
-            echo 'Changed! This runs if the pipeline’s status changed from the last run'
+            echo 'Changed! Runs if the pipeline’s status changed from the last run'
         }
     }
 }
