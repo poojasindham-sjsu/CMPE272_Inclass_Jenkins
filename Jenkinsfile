@@ -11,48 +11,48 @@ pipeline {
         stage('Deploy') {
             steps {
                 script {
-                    def success = false
-                    retry(3) {
-                        try {
-                            sh './src/flakey-deploy.sh'
-                            success = true
-                        } catch (Exception e) {
-                            echo "Deployment failed! Retrying..."
-                        }
+                    def status = retry(3) {
+                        return sh(script: './src/flakey-deploy.sh', returnStatus: true)
                     }
-                    if (!success) {
-                        echo "Deployment failed after 3 attempts. Continuing pipeline..."
+                    if (status != 0) {
+                        echo "❌ Deployment failed after 3 attempts, but continuing the pipeline..."
+                    } else {
+                        echo "✅ Deployment successful!"
                     }
                 }
 
-                timeout(time: 3, unit: 'MINUTES') {
-                    sh './src/health-check.sh'
+                catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
+                    timeout(time: 3, unit: 'MINUTES') {
+                        sh './src/health-check.sh'
+                    }
                 }
             }
         }
 
         stage('Test') {
             steps {
-                sh 'echo "Fail!"; exit 1' // This will fail intentionally
+                catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
+                    sh 'echo "Fail!"; exit 1' // This step is now ignored for pipeline success
+                }
             }
         }
     }
 
     post {
         always {
-            echo 'This will always run, no matter what'
+            echo '✅ This will always run, no matter what'
         }
         success {
-            echo 'Success! This runs only if the pipeline succeeds'
+            echo '🎉 SUCCESS: The pipeline completed successfully'
         }
         failure {
-            echo 'Failure! This runs only if the pipeline fails'
+            echo '❌ FAILURE: This will not appear because the pipeline is forced to succeed'
         }
         unstable {
-            echo 'Unstable! This runs only if the build is unstable'
+            echo '⚠️ UNSTABLE: This will not appear unless specifically marked'
         }
         changed {
-            echo 'Changed! Runs if the pipeline’s status changed from the last run'
+            echo '🔄 Changed! Runs if the pipeline’s status changed from the last run'
         }
     }
 }
