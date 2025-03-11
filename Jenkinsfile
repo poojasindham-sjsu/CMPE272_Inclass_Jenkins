@@ -1,6 +1,7 @@
 pipeline {
-    agent any
-
+agent {
+        docker { image 'python:3.8' }  // Use Python Docker image
+    }
     stages {
         stage('Setup') {
             steps {
