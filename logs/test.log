@@ -1,1 +1,11 @@
+[INFO] Test started at 10:00 AM
+[INFO] Running test_addition
+[PASS] test_addition passed
+[INFO] Running test_subtraction
+[PASS] test_subtraction passed
+[INFO] Running test_multiplication
+[PASS] test_multiplication passed
+[INFO] Running test_division
+[PASS] test_division passed
+[INFO] All tests completed successfully!
 
