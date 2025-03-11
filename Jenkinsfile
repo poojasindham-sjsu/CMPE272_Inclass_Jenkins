@@ -21,7 +21,7 @@ pipeline {
                         }
                     }
                     if (!success) {
-                        echo "❌ Deployment failed after 3 attempts. Continuing pipeline..."
+                        echo "Deployment failed after 3 attempts. Continuing pipeline..."
                     }
                 }
 
