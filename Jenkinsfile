@@ -18,7 +18,10 @@ agent {
         stage('Run Tests') {
             steps {
                 echo "Running tests..."
-                sh 'pytest tests/test_sample.py --junitxml=test-results.xml'
+                sh '''
+                . venv/bin/activate
+                venv/bin/pytest tests/test_sample.py --junitxml=test-results.xml  # Use full path
+                '''
             }
         }
 
